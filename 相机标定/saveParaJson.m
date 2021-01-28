@@ -1,0 +1,21 @@
+%stereoParams = ?
+outName="test.json";
+para.size=flip(stereoParams.CameraParameters1.ImageSize);
+para.R=transpose(stereoParams.RotationOfCamera2);
+para.T=transpose(stereoParams.TranslationOfCamera2);
+para.left_camera_matrix=transpose(stereoParams.CameraParameters1.IntrinsicMatrix);
+para.right_camera_matrix=transpose(stereoParams.CameraParameters2.IntrinsicMatrix);
+distL = zeros(1,5);
+distR = zeros(1,5);
+distL(1:2) = stereoParams.CameraParameters1.RadialDistortion(1:2);
+distL(5)=stereoParams.CameraParameters1.RadialDistortion(3);
+distL(3:4)= stereoParams.CameraParameters1.TangentialDistortion;
+distR(1:2) = stereoParams.CameraParameters2.RadialDistortion(1:2);
+distR(5)=stereoParams.CameraParameters2.RadialDistortion(3);
+distR(3:4)= stereoParams.CameraParameters2.TangentialDistortion;
+para.left_distortion=distL;
+para.right_distortion=distR;
+jsontext=jsonencode(para);
+f=fopen(outName,'w');
+fwrite(f,jsontext);
+fclose(f);
