@@ -67,8 +67,8 @@ def convert(imgdir, annpath):
     coco_output['categories'] = [
         {
         'id': 1,
-        'name': 'fish',
-        'supercategory': 'allFish',
+        'name': 'shrimp',
+        'supercategory': 'allShrimp',
         },
     ]
     coco_output['images'] = []
@@ -83,6 +83,7 @@ def convert(imgdir, annpath):
     iscrowd = 0
     #in VIA annotations, keys are image name
     for img_id, key in enumerate(ann.keys()):
+        ann_num = 0
         regions = ann[key]["regions"]
 
         # for one image ,there are many regions,they share the same img id
@@ -136,8 +137,9 @@ def convert(imgdir, annpath):
                 ann_info = create_annotation_info(ann_id, img_id, cat_id, iscrowd, area, box, segmentation)
                 coco_output['annotations'].append(ann_info)
                 ann_id = ann_id + 1
+                ann_num += 1
 
-        if ann_id > 0:
+        if ann_num > 0:
             filename = ann[key]['filename']
             print(filename)
             img = cv2.imread(imgdir + filename)
@@ -155,9 +157,9 @@ if __name__== '__main__':
     # img_path = '../fish_video/datasets_via_json/henze/train/' #改成自己的图片路径
     # anno_path = '../fish_video/datasets_via_json/henze/train_via_region_data.json' #自己的标注文件的路径。注意这里不是使用的VIA导出的coco格式文件，而是单纯的json格式文件。
     # result_path = '../henze_coco/annotations/instances_train.json' #输出，结果文件
-    img_path = '../total/' #改成自己的图片路径
-    anno_path = '../total/via_rectified.json' #自己的标注文件的路径。注意这里不是使用的VIA导出的coco格式文件，而是单纯的json格式文件。
-    result_path = '../coco_box.json' #输出，结果文件
+    img_path = './images1/' #改成自己的图片路径
+    anno_path = './annotations1/via_export_json.json' #自己的标注文件的路径。注意这里不是使用的VIA导出的coco格式文件，而是单纯的json格式文件。
+    result_path = './annotations1/coco_box.json' #输出，结果文件
     result = convert(img_path, anno_path)
     #把结果导出呈json文件。
     with open(result_path, 'w') as file_obj:
