@@ -100,3 +100,5 @@ plot/
 *.jpg
 *.png
 *.rar
+*.csv
+*.ply

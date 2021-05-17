@@ -3,8 +3,8 @@ import cv2
 import datetime
 import json
 import getArea
-
-
+import os.path as osp
+import shutil
 
 def create_image_info(image_id, file_name, image_size,
                       date_captured=datetime.datetime.utcnow().isoformat(' '),
@@ -41,7 +41,7 @@ def get_segmenation(coord_x, coord_y):
         seg.append(y)
     return [seg]
 
-def convert(imgdir, annpath):
+def convert(imgdir, annpath, result_dir):
     '''
     :param imgdir: directory for your images
     :param annpath: path for your annotations
@@ -85,7 +85,10 @@ def convert(imgdir, annpath):
     for img_id, key in enumerate(ann.keys()):
         ann_num = 0
         regions = ann[key]["regions"]
-
+        filename = ann[key]['filename']
+        img_path = osp.join(imgdir, filename)
+        if not osp.exists(img_path):
+            continue
         # for one image ,there are many regions,they share the same img id
         for region in regions:
             if region['shape_attributes']['name'] == "point":
@@ -140,12 +143,12 @@ def convert(imgdir, annpath):
                 ann_num += 1
 
         if ann_num > 0:
-            filename = ann[key]['filename']
             print(filename)
-            img = cv2.imread(imgdir + filename)
+            img = cv2.imread(img_path)
             # make image info and storage it in coco_output['images']
             image_info = create_image_info(img_id, os.path.basename(filename), img.shape[:2])
             coco_output['images'].append(image_info)
+            shutil.copy(img_path, osp.join(result_dir, 'imgs', filename))
         else:
             num_invalid_images += 1
     print('total invalid image number is {}'.format(num_invalid_images))
@@ -157,10 +160,14 @@ if __name__== '__main__':
     # img_path = '../fish_video/datasets_via_json/henze/train/' #改成自己的图片路径
     # anno_path = '../fish_video/datasets_via_json/henze/train_via_region_data.json' #自己的标注文件的路径。注意这里不是使用的VIA导出的coco格式文件，而是单纯的json格式文件。
     # result_path = '../henze_coco/annotations/instances_train.json' #输出，结果文件
-    img_path = './images1/' #改成自己的图片路径
-    anno_path = './annotations1/via_export_json.json' #自己的标注文件的路径。注意这里不是使用的VIA导出的coco格式文件，而是单纯的json格式文件。
-    result_path = './annotations1/coco_box.json' #输出，结果文件
-    result = convert(img_path, anno_path)
+    img_path = './data/hkw.sorted/hkw.sorted.2' #改成自己的图片路径
+    anno_path = './data/hkw.sorted/via.2.json' #自己的标注文件的路径。注意这里不是使用的VIA导出的coco格式文件，而是单纯的json格式文件。
+    result_dir = './data.coco/hkw.sorted.2'
+    result_img_dir = osp.join(result_dir, 'imgs')
+    if not osp.exists(result_img_dir):
+        os.makedirs(result_img_dir)
+
+    result = convert(img_path, anno_path, result_dir)
     #把结果导出呈json文件。
-    with open(result_path, 'w') as file_obj:
+    with open(osp.join(result_dir, 'coco.json'), 'w') as file_obj:
         json.dump(result, file_obj)

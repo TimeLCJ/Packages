@@ -14,8 +14,8 @@ import mmcv
 
 pylab.rcParams['figure.figsize'] = (8.0, 10.0)
 
-img_path = './images1/'
-annFile = './annotations1/coco_box.json'
+img_path = './data.coco/hkw.sorted.2/imgs'
+annFile = './data.coco/hkw.sorted.2/coco.json'
 
 
 # img_path = 'data/coco/val2017'

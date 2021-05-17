@@ -3,6 +3,7 @@ import cv2
 import datetime
 import json
 import getArea
+import shutil
 
 def convert(imgdir, annpath, result_path):
     '''
@@ -12,19 +13,21 @@ def convert(imgdir, annpath, result_path):
     as for keywords 'info','licenses','categories',you should modify them manually
     '''
     via_output = {}
-    size = 10000
     ann = json.load(open(annpath))
     # annotations id start from zero
 
     num_invalid_images = 0
     #in VIA annotations, keys are image name
     for img_id, key in enumerate(ann.keys()):
+        imgs_valid_list = os.listdir(imgdir)
         regions = ann[key]["regions"]
-
         filename = ann[key]['filename']
-        img = cv2.imread(os.path.join(imgdir, filename))
+        size = ann[key]["size"]
+        if filename not in imgs_valid_list:
+            continue
+        # img = cv2.imread(os.path.join(imgdir, filename))
         num_mask = 0
-
+        regions_new = []
         # for one image ,there are many regions,they share the same img id
         for region in regions:
             # # 这里也需要修改。原作者是region['region_attributes']['label'],
@@ -36,6 +39,9 @@ def convert(imgdir, annpath, result_path):
             #     cat_id = 1
             cat_id = 1 # 我直接默认所有类别为"fish"，所以只有一个cat_id，其值为1
             iscrowd = 0
+            if 'cx' in region['shape_attributes']:
+                regions_new.append(region)
+                continue
             points_x = region['shape_attributes']['all_points_x']
             points_y = region['shape_attributes']['all_points_y']
 
@@ -51,29 +57,31 @@ def convert(imgdir, annpath, result_path):
             if area <= 0:
                 continue
 
-            min_x = min(points_x)
-            max_x = max(points_x)
-            min_y = min(points_y)
-            max_y = max(points_y)
-            box = [min_x, min_y, max_x-min_x, max_y-min_y]
-            patch = img[min_y: max_y, min_x: max_x]
-            patch_name = filename[:-4]+'_'+str(num_mask)+'.jpg'
-            cv2.imwrite(os.path.join(result_path, patch_name), patch)
-            points_x = [i - min_x for i in points_x]
-            points_y = [i - min_y for i in points_y]
-            regions = [{"shape_attributes": {"name": "polygon", "all_points_x": points_x, "all_points_y": points_y},
+            # min_x = min(points_x)
+            # max_x = max(points_x)
+            # min_y = min(points_y)
+            # max_y = max(points_y)
+            # box = [min_x, min_y, max_x-min_x, max_y-min_y]
+            # # patch = img[min_y: max_y, min_x: max_x]
+            # # patch_name = filename[:-4]+'_'+str(num_mask)+'.jpg'
+            # # cv2.imwrite(os.path.join(result_path, patch_name), patch)
+            # points_x = [i - min_x for i in points_x]
+            # points_y = [i - min_y for i in points_y]
+            region_new = {"shape_attributes": {"name": "polygon", "all_points_x": points_x, "all_points_y": points_y},
                         "region_attributes": {"type": "fish"}
-                        }]
-            via_output[patch_name+str(size)] = {'filename': patch_name,
-                                                'size': size,
-                                                'regions': regions,
-                                                "file_attributes": {}}
+                        }
+            regions_new.append(region_new)
             num_mask += 1
-
         if num_mask > 0:
+            shutil.copy(os.path.join(imgdir, filename), os.path.join(result_path, filename))
             print(filename)
         else:
             num_invalid_images += 1
+
+        via_output[filename + str(size)] = {'filename': filename,
+                                              'size': size,
+                                              'regions': regions_new,
+                                              "file_attributes": {}}
     print('total invalid image number is {}'.format(num_invalid_images))
 
     return via_output
@@ -83,13 +91,13 @@ if __name__== '__main__':
     # img_path = '../fish_video/datasets_via_json/henze/train/' #改成自己的图片路径
     # anno_path = '../fish_video/datasets_via_json/henze/train_via_region_data.json' #自己的标注文件的路径。注意这里不是使用的VIA导出的coco格式文件，而是单纯的json格式文件。
     # result_path = '../henze_coco/annotations/instances_train.json' #输出，结果文件
-    img_path = r'D:\lcj\data\henze\train' #改成自己的图片路径
-    anno_path = r'D:\lcj\data\henze\train\via_region_data.json' #自己的标注文件的路径。注意这里不是使用的VIA导出的coco格式文件，而是单纯的json格式文件。
-    result_path = './croped/' #输出，结果文件
+    img_path = r'E:\test\data\data\hkw.5.12.onefish\imgs_origin' #改成自己的图片路径
+    anno_path = r'E:\test\data\data\hkw_train_1400\annos/hkw_train_via.json' #自己的标注文件的路径。注意这里不是使用的VIA导出的coco格式文件，而是单纯的json格式文件。
+    result_path = r'E:\test\data\data\hkw.5.12.onefish/imgs1_select' #输出，结果文件
     if not os.path.exists(result_path):
-        os.mkdir(result_path)
+        os.makedirs(result_path)
 
     result = convert(img_path, anno_path, result_path)
     #把结果导出呈json文件。
-    with open(os.path.join(result_path, 'via_crop.json'), 'w') as file_obj:
+    with open(os.path.join(result_path, 'via_selected.json'), 'w') as file_obj:
         json.dump(result, file_obj)
