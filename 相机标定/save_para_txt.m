@@ -1,5 +1,5 @@
 %1.将mat数据读进内存
-a=load('720pi02.mat');
+a=load('matlab.mat');
 mkdir para/;
 sp = a.stereoParams;
 cp1 = sp.CameraParameters1;

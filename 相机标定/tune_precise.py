@@ -11,11 +11,11 @@ balance=0
 # frame2 = frame[:,int(w/2):]
 
 
-frame1 = cv2.imread("./calibrate_img/divided_720/left/1.png")
-frame2 = cv2.imread("./calibrate_img/divided_720/right/1.png")
+frame1 = cv2.imread("./calibrate_img/divided_720/left/29.png")
+frame2 = cv2.imread("./calibrate_img/divided_720/right/29.png")
 
 
-f = open("./HBV-1780-90_1_720.json","r")
+f = open("./新相机_720.json","r")
 dic = json.load(f)
 
 size = tuple(dic["size"])
@@ -34,11 +34,13 @@ R1, R2, P1, P2, Q,validPixROI1, validPixROI2  = cv2.stereoRectify(left_camera_ma
 left_map1, left_map2 = cv2.initUndistortRectifyMap(left_camera_matrix, left_distortion, R1, P1, size, cv2.CV_16SC2)
 right_map1, right_map2 = cv2.initUndistortRectifyMap(right_camera_matrix, right_distortion, R2, P2, size, cv2.CV_16SC2)
 
-cv2.namedWindow("left")
-cv2.namedWindow("right")
+cv2.namedWindow("left", cv2.WINDOW_NORMAL | cv2.WINDOW_KEEPRATIO)
+cv2.namedWindow("right", cv2.WINDOW_NORMAL | cv2.WINDOW_KEEPRATIO)
 cv2.namedWindow("depth")
 cv2.moveWindow("left", 0, 0)
 cv2.moveWindow("right", 600, 0)
+cv2.resizeWindow('left', 640, 480)
+cv2.resizeWindow('right', 640, 480)
 cv2.createTrackbar("num", "depth", 0, 30, lambda x: None)
 cv2.createTrackbar("blockSize", "depth", 5, 30, lambda x: None)
 cv2.createTrackbar("windowSize", "depth", 1, 20, lambda x: None)

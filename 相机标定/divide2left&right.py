@@ -39,6 +39,7 @@ old_dir = os.getcwd()
 os.chdir(path)
 print(os.getcwd())
 frame_count = 0
+cv2.namedWindow('img', cv2.WINDOW_NORMAL | cv2.WINDOW_KEEPRATIO)
 while cap.isOpened():
     flag, frame = cap.read()
     if not flag:
